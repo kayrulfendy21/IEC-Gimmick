@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahabat Robot - Mission Intro Part 1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan: #00b4d8;
+            --cyan-glow: rgba(0, 180, 216, 0.5);
+            --dark-text: #023e8a;
+            --border-color: #90e0ef;
+            --bg-light: #ffffff;
+            --hud-bg: rgba(248, 253, 255, 0.85);
+            --verified: #38b000;
+            --amber: #f4a11e;
+            --ink-soft: #4a76b8;
+            --grid-fine: rgba(0, 180, 216, 0.08);
+            --grid-bold: rgba(0, 180, 216, 0.15);
+            --font-display: 'Chakra Petch', 'Segoe UI', sans-serif;
+            --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #000;
+            color: var(--dark-text);
+            font-family: var(--font-mono);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Boot Overlay */
+        #start-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0, 5, 15, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.5s ease;
+        }
+        .start-text {
+            font-family: var(--font-display);
+            color: var(--cyan);
+            font-size: clamp(24px, 4vw, 36px);
+            letter-spacing: 5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            animation: blink 1.5s infinite;
+        }
+        .start-subtext {
+            color: var(--border-color);
+            margin-top: 15px;
+            font-size: clamp(12px, 2vw, 16px);
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        /* Background Image */
+        .bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 1;
+            transform: scale(1);
+            z-index: 0;
+            filter: grayscale(30%) contrast(120%) brightness(0.7);
+            background-image: url("picture of sahabat at gallery.jpeg");
+        }
+
+        /* HUD Frame */
+        .hud-frame {
+            width: 95vw;
+            max-width: 1200px;
+            height: 95vh;
+            max-height: 850px;
+            background: var(--hud-bg);
+            border: 3px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 180, 216, 0.3), inset 0 0 30px rgba(0, 180, 216, 0.2);
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            backdrop-filter: blur(4px);
+            overflow: hidden;
+        }
+
+        .hud-frame::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                linear-gradient(var(--grid-fine) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-fine) 1px, transparent 1px),
+                linear-gradient(var(--grid-bold) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-bold) 1px, transparent 1px);
+            background-size: 20px 20px, 20px 20px, 100px 100px, 100px 100px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Teleportation / Warp Effect */
+        .warp-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, var(--cyan) 50%, #ffffff 75%, transparent 100%);
+            background-size: 100% 200%;
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+        
+        .warp-overlay.warp-active {
+            animation: warpJump 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes warpJump {
+            0% { opacity: 0; background-position: 0% -100%; filter: brightness(1); }
+            50% { opacity: 1; background-position: 0% 100%; filter: brightness(4); }
+            100% { opacity: 0; background-position: 0% 200%; filter: brightness(1); }
+        }
+
+        /* Console Window */
+        .console-container {
+            position: relative;
+            z-index: 3;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding-bottom: 40px;
+        }
+
+        .console-header {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--cyan);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--cyan);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-indicator {
+            color: var(--amber);
+            animation: blink 1s infinite;
+        }
+
+        .console-text {
+            font-size: clamp(15px, 2.2vw, 20px);
+            line-height: 1.6;
+            color: var(--dark-text);
+            text-shadow: 0 0 8px rgba(0, 180, 216, 0.3);
+            white-space: pre-wrap;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 12px;
+            height: 22px;
+            background-color: var(--cyan);
+            vertical-align: text-bottom;
+            animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        /* Corner Brackets */
+        .corner {
+            position: absolute;
+            width: 40px; height: 40px;
+            border: 3px solid var(--cyan);
+            z-index: 4;
+        }
+        .corner.tl { top: 15px; left: 15px; border-right: none; border-bottom: none; }
+        .corner.tr { top: 15px; right: 15px; border-left: none; border-bottom: none; }
+        .corner.bl { bottom: 15px; left: 15px; border-right: none; border-top: none; }
+        .corner.br { bottom: 15px; right: 15px; border-left: none; border-top: none; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Background Music -->
+    <audio id="intro-bgm" src="./Intro BG.mp3" preload="auto"></audio>
+
+    <!-- Start Overlay for Audio Policy -->
+    <div id="start-overlay">
+        <div class="start-text">SYSTEM STANDBY</div>
+        <div class="start-subtext">[ CLICK TO INITIATE BOOT SEQUENCE ]</div>
+    </div>
+
+    <!-- Static Background Image -->
+    <div class="bg-layer"></div>
+
+    <!-- Main Interface -->
+    <div class="hud-frame">
+        <div class="warp-overlay" id="warp-effect"></div>
+        
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <span class="corner bl"></span>
+        <span class="corner br"></span>
+
+        <div class="console-container">
+            <div class="console-header">
+                <span>SAHABAT LOG</span>
+                <span id="status-indicator" class="status-indicator">IDLE</span>
+            </div>
+            <div class="console-text" id="console-output"></div>
+        </div>
+    </div>
+
+    <script>
+        const consoleOutput = document.getElementById('console-output');
+        const statusIndicator = document.getElementById('status-indicator');
+        const warpEffect = document.getElementById('warp-effect');
+        const startOverlay = document.getElementById('start-overlay');
+        const bgm = document.getElementById('intro-bgm');
+
+        // --- AUDIO SYNTHESIS SYSTEM ---
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTypeSound() {
+            if (!audioCtx) return;
+            
+            const t = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(100 + Math.random() * 20, t); 
+            osc.frequency.exponentialRampToValueAtTime(30, t + 0.03); 
+            
+            gainNode.gain.setValueAtTime(0, t);
+            gainNode.gain.linearRampToValueAtTime(0.25, t + 0.005);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(t);
+            osc.stop(t + 0.04);
+        }
+
+        function playWarpSound() {
+            if (!audioCtx) return;
+            
+            const t = audioCtx.currentTime;
+            
+            const subOsc = audioCtx.createOscillator();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(60, t);
+            subOsc.frequency.exponentialRampToValueAtTime(15, t + 1.2); 
+            
+            const rumbleOsc = audioCtx.createOscillator();
+            rumbleOsc.type = 'sawtooth';
+            rumbleOsc.frequency.setValueAtTime(80, t);
+            rumbleOsc.frequency.exponentialRampToValueAtTime(25, t + 1.2);
+            
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(80, t);
+            filter.frequency.exponentialRampToValueAtTime(500, t + 0.5); 
+            filter.frequency.exponentialRampToValueAtTime(40, t + 1.2);  
+            
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0, t);
+            gainNode.gain.linearRampToValueAtTime(0.6, t + 0.3); 
+            gainNode.gain.exponentialRampToValueAtTime(0.001, t + 1.2); 
+            
+            subOsc.connect(gainNode);
+            
+            rumbleOsc.connect(filter);
+            filter.connect(gainNode);
+            
+            gainNode.connect(audioCtx.destination);
+            
+            subOsc.start(t);
+            rumbleOsc.start(t);
+            subOsc.stop(t + 1.2);
+            rumbleOsc.stop(t + 1.2);
+        }
+
+        // --- SEQUENTIAL MISSION SCRIPT ---
+        const script = [
+            { delay: 500,  text: "SYS BOOT: MISSION CONTROL ONLINE.\n", status: "INITIALIZING", color: "var(--dark-text)" },
+            { delay: 1000, text: "> HIGH-PRIORITY MISSION RECEIVED!\n\n", status: "MISSION RECEIVED", color: "#d90429" },
+            { delay: 1200, text: "> OBJECTIVE: Assist IIUM President in launching IEC 2026.\n", status: "ANALYZING PROTOCOL", color: "var(--cyan)" },
+            { delay: 1200, text: "> REQUIREMENT: Deploy a suitable autonomous robot to execute launch sequence.\n\n", status: "EVALUATING REQUIREMENTS" },
+            { delay: 1500, text: "> MISSION DETAILS:\n  • MISSION NAME : IEC 2026 Official Opening Ceremony\n  • TIME & DATE   : 09:00 AM | SEPTEMBER 8, 2026\n  • LOCATION      : Auditorium A (KOE), Gombak Campus\n\n", status: "MISSION DATA LOADED", color: "var(--amber)" },
+            { delay: 900, text: "> ROBOT DISPATCH PROTOCOL: INITIATING NEAREST-AGENT SEARCH...\n", status: "HANDING OFF TO ROBOT NETWORK", color: "var(--cyan)" },
+            { delay: 1000, text: "> PART 1 COMPLETE. OPENING GLOBAL ROBOT POSITIONING SYSTEM...\n", status: "TRANSFER AUTHORIZED", color: "var(--verified)" },
+            { delay: 500, action: "REDIRECT" },
+        ];
+
+        function typeText(text, color) {
+            return new Promise(resolve => {
+                let i = 0;
+                let span = document.createElement('span');
+                if (color) span.style.color = color;
+                
+                const cursor = document.createElement('span');
+                cursor.className = 'cursor';
+                
+                consoleOutput.appendChild(span);
+                consoleOutput.appendChild(cursor);
+
+                const interval = setInterval(() => {
+                    const char = text.charAt(i);
+                    span.textContent += char;
+                    
+                    if (char.trim() !== '') {
+                        playTypeSound();
+                    }
+
+                    i++;
+                    if (i >= text.length) {
+                        clearInterval(interval);
+                        consoleOutput.removeChild(cursor);
+                        resolve();
+                    }
+                }, 25);
+            });
+        }
+
+        async function runScript() {
+            for (let step of script) {
+                if (step.delay) {
+                    await new Promise(r => setTimeout(r, step.delay));
+                }
+                
+                if (step.status) {
+                    statusIndicator.textContent = step.status;
+                }
+
+                if (step.text) {
+                    await typeText(step.text, step.color);
+                }
+
+                if (step.action === "TELEPORT") {
+                    playWarpSound();
+                    warpEffect.classList.add("warp-active");
+                    
+                    setTimeout(() => {
+                        document.documentElement.style.setProperty('--hud-bg', 'rgba(255, 255, 255, 0.95)'); 
+                    }, 600);
+                }
+
+                if (step.action === "REDIRECT") {
+                    // Redirects to intro_part2.html, closing this page
+                    window.location.replace('intro_part2.html');
+                }
+            }
+        }
+
+        // Wait for user interaction to allow AudioContext and BGM to start
+        startOverlay.addEventListener('click', () => {
+            initAudio();
+            
+            // Start Background Music
+            bgm.volume = 0.5;
+            bgm.play().catch(e => console.log("Audio play failed:", e));
+
+            startOverlay.style.opacity = '0';
+            setTimeout(() => {
+                startOverlay.style.display = 'none';
+                consoleOutput.innerHTML = '';
+                runScript();
+            }, 500);
+        });
+
+    </script>
+</body>
+</html>
